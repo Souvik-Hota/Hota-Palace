@@ -6,6 +6,7 @@ export default function App() {
   const [filter, setFilter] = useState("all");
   const [lightbox, setLightbox] = useState({ open: false, src: "", caption: "" });
   const [introDone, setIntroDone] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => setYear(new Date().getFullYear()), []);
   useEffect(() => {
@@ -97,7 +98,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="site-wrapper">
+    <div className={`site-wrapper ${menuOpen ? "menu-open" : ""}`}>
 
       {/* Hidden Background Music */}
       <audio id="backgroundMusic" src="/assets/music/theme.mp3" preload="auto" loop></audio>
@@ -115,12 +116,25 @@ export default function App() {
 
       <header className="site-header">
         <div className="brand">Hota Palace</div>
-        <nav>
-          <a href="#home">Home</a>
-          <a href="#gallery">Gallery</a>
-          <a href="#about">About</a>
-          <a href="#location">Location</a>
-          <a href="#contact">Contact</a>
+        
+        {/* Hamburger Menu Button (Mobile) */}
+        <button 
+          className={`hamburger ${menuOpen ? "open" : ""}`}
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        {/* Navigation Menu */}
+        <nav className={`site-nav ${menuOpen ? "open" : ""}`}>
+          <a href="#home" onClick={() => setMenuOpen(false)}>Home</a>
+          <a href="#gallery" onClick={() => setMenuOpen(false)}>Gallery</a>
+          <a href="#about" onClick={() => setMenuOpen(false)}>About</a>
+          <a href="#location" onClick={() => setMenuOpen(false)}>Location</a>
+          <a href="#contact" onClick={() => setMenuOpen(false)}>Contact</a>
         </nav>
       </header>
 
