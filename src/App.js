@@ -105,7 +105,7 @@ export default function App() {
     <div className={`site-wrapper ${menuOpen ? "menu-open" : ""}`}>
 
       {/* Hidden Background Music */}
-      <audio ref={audioRef} id="backgroundMusic" src="/assets/music/theme.mp3" preload="auto" loop />
+      <audio ref={audioRef} id="backgroundMusic" src="/assets/music/theme1.mp3" preload="auto" loop />
 
       {/* Entrance Animation */}
       <div className={`intro-overlay ${introDone ? "hide" : ""}`}>
