@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "./styles.css";
 
 export default function App() {
@@ -7,6 +7,8 @@ export default function App() {
   const [lightbox, setLightbox] = useState({ open: false, src: "", caption: "" });
   const [introDone, setIntroDone] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
 
   useEffect(() => setYear(new Date().getFullYear()), []);
   useEffect(() => {
@@ -14,44 +16,46 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // ⭐ MUSIC AUTO-PLAY + BUTTON LOGIC
+  // ⭐ MUSIC AUTO-PLAY + BUTTON LOGIC (React-friendly)
   useEffect(() => {
-    const audio = document.getElementById("backgroundMusic");
+    const audio = audioRef.current;
     if (!audio) return;
 
-    let isPlaying = false;
-    const btn = document.getElementById("musicBtn");
+    // Global handler: if user clicks/touches anywhere (except the music button)
+    // and audio is paused, start playback. This allows starting the song by
+    // interacting with any page control (menu, buttons, etc.).
+    const globalPlayHandler = (e) => {
+      try {
+        const btn = document.getElementById("musicBtn");
+        if (btn && (btn === e.target || btn.contains(e.target))) return; // music button handles itself
+      } catch (err) {}
 
-    // Auto play after any interaction
-    const autoStart = () => {
-      if (!isPlaying) {
-        audio.play().catch(() => {});
-        isPlaying = true;
-        if (btn) btn.querySelector(".label").textContent = "Pause Music";
+      if (audio.paused) {
+        audio.play().then(() => setIsPlaying(true)).catch(() => {});
       }
-      window.removeEventListener("click", autoStart);
-      window.removeEventListener("touchstart", autoStart);
     };
 
-    window.addEventListener("click", autoStart);
-    window.addEventListener("touchstart", autoStart);
+    window.addEventListener("click", globalPlayHandler);
+    window.addEventListener("touchstart", globalPlayHandler);
 
-    // Button manual toggle
-    if (btn) {
-      btn.onclick = () => {
-        if (!isPlaying) {
-          audio.play();
-          btn.querySelector(".label").textContent = "Pause Music";
-          isPlaying = true;
-        } else {
-          audio.pause();
-          btn.querySelector(".label").textContent = "Play Music";
-          isPlaying = false;
-        }
-      };
-    }
+    return () => {
+      window.removeEventListener("click", globalPlayHandler);
+      window.removeEventListener("touchstart", globalPlayHandler);
+    };
   }, []);
-  // ⭐ END MUSIC LOGIC
+
+  // Toggle handler used by the music button
+  function toggleMusic() {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (audio.paused) {
+      audio.play().then(() => setIsPlaying(true)).catch(() => {});
+    } else {
+      audio.pause();
+      setIsPlaying(false);
+    }
+  }
 
   // Photos
   const familyPhotos = [
@@ -101,7 +105,7 @@ export default function App() {
     <div className={`site-wrapper ${menuOpen ? "menu-open" : ""}`}>
 
       {/* Hidden Background Music */}
-      <audio id="backgroundMusic" src="/assets/music/theme.mp3" preload="auto" loop></audio>
+      <audio ref={audioRef} id="backgroundMusic" src="/assets/music/theme.mp3" preload="auto" loop />
 
       {/* Entrance Animation */}
       <div className={`intro-overlay ${introDone ? "hide" : ""}`}>
@@ -151,9 +155,15 @@ export default function App() {
             <h1 className="premium-title">Welcome to Hota Palace</h1>
 
             {/* Music Button */}
-            <button id="musicBtn" className="premium-music-btn">
+            <button
+              id="musicBtn"
+              className={`premium-music-btn ${isPlaying ? "playing" : ""}`}
+              onClick={toggleMusic}
+              aria-pressed={isPlaying}
+              aria-label={isPlaying ? "Pause music" : "Play music"}
+            >
               <span className="icon">🎵</span>
-              <span className="label">Play Music</span>
+              <span className="label">{isPlaying ? "Pause Music" : "Play Music"}</span>
               <span className="pulse"></span>
             </button>
 
